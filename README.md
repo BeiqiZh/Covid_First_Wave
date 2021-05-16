@@ -4,7 +4,7 @@ The pandemic resulting from the novel SARS-Cov-2 virus has been an unprecedented
 
 Now we will be looking at multiple ratios to further determine how countries are controlling the first COVID wave.
 
-##Measures
+# Measure Ratios 
 1. Prevalence Rate
 2. Incidence Rate
 3. Hazard Rate
