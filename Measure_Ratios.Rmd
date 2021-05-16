@@ -1,0 +1,1165 @@
+---
+title: "Final_Q12345"
+output: html_document
+---
+
+1. PLOT EACH COUNTRIES' COVID TREND TO IDENTIFY 1TH WAVE.
+
+```{r}
+data_filter=read.csv("C:/Users/becky/OneDrive/Desktop/covid_countries_new.csv")
+library(plotly)
+library(timetk)
+library(dplyr)
+library(data.table)
+data_filter= data.frame(data_filter)
+data_filter$Canada_daily <- c(0, diff(data_filter$Canada_total, lag = 1, differences = 1))
+data_filter$Australia_daily <- c(0, diff(data_filter$Australia_total, lag = 1, differences = 1))
+data_filter$Germany_daily <- c(0, diff(data_filter$Germany_total, lag = 1, differences = 1))
+data_filter$Finland_daily <- c(0, diff(data_filter$Finland_total, lag = 1, differences = 1))
+data_filter$Israel_daily <- c(0, diff(data_filter$Israel_total, lag = 1, differences = 1))
+
+x <- as.Date(data_filter$Date)
+pal <- c("#99d7fb", "#b9e4ed", "#054e78","#164dab","#c8d6f7")
+fig <- plot_ly(data_filter, x = ~x,line = list( width = 2),mode = 'line+markers',colors=pal)
+# fig <- fig %>% add_annotations(x = c(x[175],x[150],x[175],x[200],x[150]),
+#                                y = c(27737,29416,300000,2999,3000),
+#                                text =c('1',"2","3","4","5"),
+#                                xref = "x",
+#                                yref = "y",
+#                                showarrow = TRUE,
+#                                arrowhead = 7,
+#                                arrowsize = 1,
+#                                ax = 20,
+#                                ay = -40)
+
+fig <- fig %>% add_lines(y = ~round(as.numeric(Canada_daily),0), name = "Canada",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Daily Case on " , Date, "is: ",round(as.numeric(Canada_daily),0)))
+fig <- fig %>% add_segments(x = x[178], xend = x[178], y = 0, yend = 18000,opacity=0.5,line = list(dash = "dash",width=4),text = "TRY", name = "First Wave End",visible=F)
+
+fig <- fig %>% add_lines(y = ~Australia_daily, name = "Australia", visible = T,line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Daily Case on " , Date, "is: ",round(as.numeric(Australia_daily),0)))
+fig <- fig %>% add_segments(x = x[130], xend = x[130], y = 0, yend = 700,opacity=0.5,line = list(dash = "dash",width=4), name = "First Wave End",visible=F)
+
+fig <- fig %>% add_lines(y = ~Germany_daily, name = "Germany", visible = T,line = list(color ="#b9e4ed"),hoverinfo = "text",
+                         text = ~paste("Daily Case on " , Date, "is: ",round(as.numeric(Germany_daily),0)))
+fig <- fig %>% add_segments(x = x[150], xend = x[150], y = 0, yend = 50000,opacity=0.5,line = list(dash = "dash",width=4), name = "First Wave End",visible=F)
+
+fig <- fig %>% add_lines(y = ~Finland_daily, name = "Finland", visible = T,line = list(color ="#c8d6f7"),hoverinfo = "text",
+                         text = ~paste("Daily Case on " , Date, "is: ",round(as.numeric(Finland_daily),0)))
+fig <- fig %>% add_segments(x = x[180], xend = x[180], y = 0, yend = 800,opacity=0.5,line = list(dash = "dash",width=4), name = "First Wave End",visible=F)
+
+fig <- fig %>% add_lines(y = ~Israel_daily, name = "Israel", visible = T,line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Daily Case on " , Date, "is: ",round(as.numeric(Israel_daily),0)))
+fig <- fig %>% add_segments(x = x[130], xend = x[130], y = 0, yend = 12000,opacity=0.5,line = list(dash = "dash",width=4), name = "First Wave End",visible=F)
+
+
+fig1 <- fig %>% layout(
+  title=list(text =  "Daily Cases in Five Countries With First Wave", y = 0.98),
+  xaxis = list(title='Date'),
+  yaxis = list(title = "Cases"),
+  font=list(
+    size = 10),
+  
+  
+  updatemenus = list(
+    
+    list(
+      y = 0.8, size=10,
+      buttons = list(
+        list(method = "restyle",
+             args = list('visible', c(TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE)),
+             label = "View all countries"),
+        
+        
+        list(method = "restyle",
+             args = list("visible", list(TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Canada"),
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Australia"),
+        list(method = "restyle",
+             args = list("visible", list(FALSE, FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Germany"),
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE)),
+             label = "Finland"),
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE)),
+             label = "Israel")))))
+fig1
+
+# library(htmlwidgets)
+# saveWidget(fig, file="C:/Users/fandi/Desktop/covid_analytics/daily_cases.html")
+
+  
+#TO EMBEDDED INTO MEDIUM 
+#Sys.setenv("plotly_username"="beiqizhou")
+#Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+#api_create(fig1, filename = "plot1")
+```
+
+
+
+
+
+2. PLOT FOR THE FIRST WAVE DATA ONLY
+```{r}
+library(ggplot2)
+#data only for first wave
+data_filter2 = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+
+##Create active cases
+data_filter2$Cases_Active=data_filter2$Total-data_filter2$Deaths-data_filter2$Recovered
+
+data_filter2 = data_filter2[data_filter2$Day <= 200,]
+
+
+devtools::install_github("ropensci/plotly")
+colors <- c("Total"="#99d7fb", "Recovered"="#c8d6f7","Deaths"="#054e78", "Active"="#164dab")
+
+p <- ggplot(data_filter2, aes(x = Day)) +
+    geom_line(aes(y = Total, color = "Total"), size = 0.5) +
+    geom_line(aes(y = Recovered, color = "Recovered"), size = 0.5) +
+    geom_line(aes(y = Deaths, color = "Deaths"), size = 0.5) +
+    geom_line(aes(y = Cases_Active, color = "Active"), size = 0.5) +
+    labs(x = "Day",
+         y = "Values",
+         color = "Legend") +
+    scale_color_manual(values = colors)+
+  facet_wrap(~ Country, scale='free') 
+ # ggtitle("First Wave Data for 5 Countries") 
+
+
+fig <- ggplotly(p)
+fig
+
+
+#TO EMBEDDED INTO MEDIUM 
+#Sys.setenv("plotly_username"="beiqizhou")
+#Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+#api_create(fig, filename = "plot2")
+  
+```
+
+
+
+3. PLOT POINT PREVALENCE
+```{r}
+#data only for first wave
+data = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+
+
+##Create active cases
+data$cases_active=data$Total-data$Deaths-data$Recovered
+
+
+#create population variable
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+data$N=ifelse(data$Country=="Canada",N_canada,0)
+data$N=ifelse(data$Country=="Australia",N_Australia,data$N)
+data$N=ifelse(data$Country=="Germany",N_Germany,data$N)
+data$N=ifelse(data$Country=="Finland",N_Finland,data$N)
+data$N=ifelse(data$Country=="Israel",N_Israel,data$N)
+
+#point prevalence for ALL days and countries 
+data$PP=data$cases_active/data$N
+
+#first wave info onl
+data= data[data$Day <= 180,]
+
+
+
+#create a function to look at point prevalence 
+#PointP=function(x,y) {
+#output=data$PP[which(data$Country==x & data$Day==y)]
+#return(paste(round(output,2), "cases per million"))}
+
+
+p1 <- ggplot(data=data, aes(x=Day, y=PP, group=Country)) +
+  geom_line(aes(color=Country)) + 
+  scale_color_manual(values=c("#99d7fb", "#b9e4ed", "#054e78","#164dab","#c8d6f7"))+
+  ggtitle("Point Prevalence for the 5 Countries")
+  
+
+fig <- ggplotly(p1)
+fig
+
+
+#TO EMBEDDED INTO MEDIUM 
+#Sys.setenv("plotly_username"="beiqizhou")
+#Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+#api_create(fig, filename = "plot3")
+  
+```
+
+
+4. PLOT PERIOD PREVALENCE
+```{r}
+###Period prevalence = (total case at t1 - total case at t0 + total active case at t0) / population
+#data only for first wave
+data = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+
+
+##Create active cases
+data$cases_active=data$Total-data$Deaths-data$Recovered
+
+
+#create population variable
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+data$N=ifelse(data$Country=="Canada",N_canada,0)
+data$N=ifelse(data$Country=="Australia",N_Australia,data$N)
+data$N=ifelse(data$Country=="Germany",N_Germany,data$N)
+data$N=ifelse(data$Country=="Finland",N_Finland,data$N)
+data$N=ifelse(data$Country=="Israel",N_Israel,data$N)
+
+#point prevalence for ALL days and countries 
+data$PP=data$cases_active/data$N
+
+
+data$Date <- as.Date(data$Date, format =  "%m/%d/%Y")
+
+PeriodP=function(t1,t0,x) {
+  
+  numerator=data$Total[which(data$Country==x & data$Date==t1)] -data$Total[which(data$Country==x & data$Date==t0)]+data$cases_active[which(data$Country==x & data$Date==t0)]    ##cases total t0
+  
+  denominator=data$N[which(data$Country==x & data$Date==t0)]   ##Population
+  
+  output=numerator/denominator 
+  
+  return(paste(output*100))}
+
+###############MAR
+PeriodP_Ca = PeriodP("2020-03-31","2020-03-1","Canada") 
+PeriodP_Aus = PeriodP("2020-03-31","2020-03-1","Australia") 
+PeriodP_Ger = PeriodP("2020-03-31","2020-03-1","Germany") 
+PeriodP_Fin = PeriodP("2020-03-31","2020-03-1","Finland") 
+PeriodP_Isr = PeriodP("2020-03-31","2020-03-1","Israel") 
+
+PeriodP_Ca = as.numeric(PeriodP_Ca)
+PeriodP_Aus = as.numeric(PeriodP_Aus)
+PeriodP_Ger = as.numeric(PeriodP_Ger)
+PeriodP_Fin= as.numeric(PeriodP_Fin)
+PeriodP_Isr  = as.numeric(PeriodP_Isr)
+
+#Visualization
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+PP_Rate <- c(PeriodP_Ca, PeriodP_Aus, PeriodP_Ger, PeriodP_Fin, PeriodP_Isr)
+Period_P <- data.frame(Countries, PP_Rate)
+
+p1<-ggplot(data=Period_P, aes(x=Countries, y=PP_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Period Prevanlence Ratio (%)", x = "Countries",title= "Period Prevalence From March 1 to 31")
+  
+##############FEBURARY
+PeriodP_Ca = PeriodP("2020-02-29","2020-02-1","Canada") 
+PeriodP_Aus = PeriodP("2020-02-29","2020-02-1","Australia") 
+PeriodP_Ger = PeriodP("2020-02-29","2020-02-1","Germany") 
+PeriodP_Fin = PeriodP("2020-02-29","2020-02-1","Finland") 
+PeriodP_Isr = PeriodP("2020-02-29","2020-02-1","Israel") 
+
+PeriodP_Ca = as.numeric(PeriodP_Ca)
+PeriodP_Aus = as.numeric(PeriodP_Aus)
+PeriodP_Ger = as.numeric(PeriodP_Ger)
+PeriodP_Fin= as.numeric(PeriodP_Fin)
+PeriodP_Isr  = as.numeric(PeriodP_Isr)
+
+#Visualization
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+PP_Rate <- c(PeriodP_Ca, PeriodP_Aus, PeriodP_Ger, PeriodP_Fin, PeriodP_Isr)
+Period_P <- data.frame(Countries, PP_Rate)
+
+p2<-ggplot(data=Period_P, aes(x=Countries, y=PP_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Period Prevanlence Ratio (%)", x = "Countries",title= "Period Prevalence From Feburary 1 to 29")
+
+
+##############whole first wave
+PeriodP_Ca = PeriodP("2020-07-18","2020-01-22","Canada") 
+PeriodP_Aus = PeriodP("2020-05-31" ,"2020-01-22","Australia") 
+PeriodP_Ger = PeriodP("2020-06-20","2020-01-22", "Germany") 
+PeriodP_Fin = PeriodP("2020-07-20","2020-01-22","Finland") 
+PeriodP_Isr = PeriodP("2020-05-31","2020-01-22", "Israel") 
+
+PeriodP_Ca = as.numeric(PeriodP_Ca)
+PeriodP_Aus = as.numeric(PeriodP_Aus)
+PeriodP_Ger = as.numeric(PeriodP_Ger)
+PeriodP_Fin= as.numeric(PeriodP_Fin)
+PeriodP_Isr  = as.numeric(PeriodP_Isr)
+
+#Visualization
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+PP_Rate <- c(PeriodP_Ca, PeriodP_Aus, PeriodP_Ger, PeriodP_Fin, PeriodP_Isr)
+Period_P <- data.frame(Countries, PP_Rate)
+
+p3<-ggplot(data=Period_P, aes(x=Countries, y=PP_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Period Prevanlence Ratio (%)", x = "Countries",title= "Period Prevalence From First Wave")
+
+
+
+fig <- ggplotly(p1)
+fig
+
+
+fig1 <- ggplotly(p2)
+fig1
+
+fig3 <- ggplotly(p3)
+fig3
+
+#install.packages("ggpubr")
+#library(ggpubr)
+#ggarrange(p1, p2, ncol = 2)
+
+
+
+#TO EMBEDDED INTO MEDIUM 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig, filename = "plot5")
+#   
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig1, filename = "plot6")
+#   
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig3, filename = "plot7")
+
+
+```
+
+
+5. INCIDENCE RATE
+
+```{r}
+#Incidence Proportion
+IncProp=function(t1,t0,x) {
+  B=data$Total[which(data$Country==x & data$Date==t1)] 
+  A=data$Total[which(data$Country==x & data$Date==t0)]
+  popul=data$N[which(data$Country==x & data$Date==t0)]
+  output=(B-A)/popul
+  return(paste(output*100))
+}
+
+
+
+#FEB
+Inc_Ca = as.numeric(IncProp("2020-02-29","2020-02-01","Canada"))
+Inc_Aus = as.numeric(IncProp("2020-02-29","2020-02-01","Australia"))
+Inc_Ger = as.numeric(IncProp("2020-02-29","2020-02-01","Germany"))
+Inc_Fin = as.numeric(IncProp("2020-02-29","2020-02-01","Finland"))
+Inc_Isr = as.numeric(IncProp("2020-02-29","2020-02-01","Israel"))
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+Inc_Rate <- c(Inc_Ca, Inc_Aus, Inc_Ger, Inc_Fin, Inc_Isr)
+Incidence <- data.frame(Countries, Inc_Rate)
+
+p3<-ggplot(data=Period_P, aes(x=Countries, y=Inc_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Incidence Ratio (%)", x = "Countries",title= "Incidence From Feburary 1 to 29")
+
+fig3 <- ggplotly(p3)
+fig3
+
+
+#MAR
+Inc_Ca = as.numeric(IncProp("2020-03-31","2020-03-01","Canada"))
+Inc_Aus = as.numeric(IncProp("2020-03-31","2020-03-01","Australia"))
+Inc_Ger = as.numeric(IncProp("2020-03-31","2020-03-01","Germany"))
+Inc_Fin = as.numeric(IncProp("2020-03-31","2020-03-01","Finland"))
+Inc_Isr = as.numeric(IncProp("2020-03-31","2020-03-01","Israel"))
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+Inc_Rate <- c(Inc_Ca, Inc_Aus, Inc_Ger, Inc_Fin, Inc_Isr)
+Incidence <- data.frame(Countries, Inc_Rate)
+
+p4<-ggplot(data=Period_P, aes(x=Countries, y=Inc_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Incidence Ratio (%)", x = "Countries",title= "Incidence From March 1 to 31")
+
+fig4 <- ggplotly(p4)
+fig4
+
+
+#FIRST WAVE
+Inc_Ca = as.numeric(IncProp("2020-07-18","2020-01-22","Canada"))
+Inc_Aus = as.numeric(IncProp("2020-05-31" ,"2020-01-22","Australia"))
+Inc_Ger = as.numeric(IncProp("2020-06-20","2020-01-22","Germany"))
+Inc_Fin = as.numeric(IncProp("2020-07-20","2020-01-22","Finland"))
+Inc_Isr = as.numeric(IncProp("2020-05-31","2020-01-22","Israel"))
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+Inc_Rate <- c(Inc_Ca, Inc_Aus, Inc_Ger, Inc_Fin, Inc_Isr)
+Incidence <- data.frame(Countries, Inc_Rate)
+
+p4<-ggplot(data=Period_P, aes(x=Countries, y=Inc_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="Incidence Ratio (%)", x = "Countries",title= "Incidence Rate During First Wave")
+
+fig5<- ggplotly(p4)
+fig5
+
+
+#TO EMBEDDED INTO MEDIUM 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig3, filename = "plot77")
+#   
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig4, filename = "plot8")
+# 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig5, filename = "plot9")
+
+```
+
+
+
+
+6. HARZARD RATE
+```{r}
+###Hazard function (Modified Incidence Rate)
+
+#data$Population=data$N # to get population
+#data only for first wave
+data = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+
+
+##Create active cases
+data$cases_active=data$Total-data$Deaths-data$Recovered
+
+
+#create population variable
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+data$N=ifelse(data$Country=="Canada",N_canada,0)
+data$N=ifelse(data$Country=="Australia",N_Australia,data$N)
+data$N=ifelse(data$Country=="Germany",N_Germany,data$N)
+data$N=ifelse(data$Country=="Finland",N_Finland,data$N)
+data$N=ifelse(data$Country=="Israel",N_Israel,data$N)
+
+#point prevalence for ALL days and countries 
+data$PP=data$cases_active/data$N
+
+
+
+
+
+data$Haz_numerator=(data$Total-lag(data$Total))/(data$N) #lag takes the day before
+
+data$Haz_denominator=1-(data$Total/data$N)
+
+data$Haz <- Haz_numerator/Haz_denominator
+
+hazard<-data[!(data$Day==1),] #eliminate day 1 
+#view(hazard)
+
+#first wave info onl
+hazard= hazard[hazard$Day <= 180,]
+
+p6 <- ggplot(hazard, aes(x=Day, y=Haz))+geom_line(aes(color=Country))+theme_bw()+
+  scale_color_manual(values = c("Canada"="#99d7fb", "Australia"="#c8d6f7","Finland"="#054e78", "Germany"="#164dab","Israel"="#b9e4ed")) +
+  facet_wrap( ~ Country, scale="free") +
+  labs(y="Values", x = "Days",title= "Hazard Rate for 5 Countries")
+  
+
+fig6 <- ggplotly(p6)
+fig6
+ 
+#TO EMBEDDED INTO MEDIUM 
+#Sys.setenv("plotly_username"="beiqizhou")
+#Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+#api_create(fig6, filename = "plot10")
+  
+
+```
+
+
+
+```{r}
+library(streamgraph)
+library(timetk)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+all=read.csv("C:/Users/becky/OneDrive/Desktop/countries-aggregated.csv")
+all=all[all$Country %in% c("Canada","Australia","Germany","Finland","Israel"),]
+attach(all)
+
+library(imputeTS)
+all = na_mean(all)
+
+all=all[, which(colMeans(!is.na(all)) > 0.5)]
+
+all$cases_active=all$Total-all$Deaths-all$Recovered
+
+#all$Date <- as.Date(all$Date, format =  "%m/%d/%Y")
+
+
+#point prev
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+#put the population there
+all$N=ifelse(all$Country=="Canada",N_canada,0)
+all$N=ifelse(all$Country=="Finland",N_Finland,all$N)
+all$N=ifelse(all$Country=="Germany",N_Germany,all$N)
+all$N=ifelse(all$Country=="Israel",N_Israel,all$N)
+all$N=ifelse(all$Country=="Australia",N_Australia,all$N)
+
+all$PP=round(all$cases_active*100/all$N,10)
+
+#hazard rate
+all$Population=all$N
+Haz_numerator=(all$Total-lag(all$Total))/all$Population #new cases rate
+Haz_denominator=1-all$Total/all$Population #normal people rate
+all$Haz=Haz_numerator/Haz_denominator #function
+CAD_haz=all[!(all$day==1),] # no day 1
+
+#incidence rate
+#get the daily new cases firstly
+all$daily <- c(0, diff(all$Total, lag = 1, differences = 1))
+all$inc=all$daily/all$N
+
+#Cumulative incidence rate
+CIR <-function(date,name,N){
+  df1=all[all$Country==name,]
+  df2=df1[all$Date==date,]
+  num=df2$Total[1]
+  
+  return (num/N)
+}
+cir_list=c(CIR("2020-07-18","Canada",N_canada),CIR("2020-05-31","Australia",N_Australia),CIR("2020-06-20","Germany",N_Germany),CIR("2020-07-20","Finland",N_Finland),CIR("2020-05-31","Israel",N_Israel))
+library(plotly)
+
+
+
+all_week_1 = all %>% group_by(Country)%>% summarise_by_time(.date_var = Date,.by= "week", haz=mean(Haz))
+all_week_1$Date=as.Date(all_week_1$Date)
+
+library(plotly)
+all_week_1=all_week_1[all$Date[1]<all_week_1$Date,]
+all_week_1=all_week_1[ all_week_1$Date<all$Date[200],]
+datafig1=all_week_1[ all_week_1$Date<all$Date[178],]
+data_hist=do.call(rbind, Map(data.frame, Cumulative_Incidence_Score=cir_list, Country=c("Canada","Australia","Germany","Finland","Israel")))
+fig <- plot_ly(datafig1[datafig1$Country=='Canada',])
+fig <- fig %>% add_trace(x = ~Date, y = ~haz, type = 'bar', name = 'Canada',
+                         marker = list(color = "#c8d6f7"),
+                         hoverinfo = "text",
+                         text = ~paste(round(haz,7)))
+datafig2=all_week_1[ all_week_1$Date<all$Date[130],]
+fig1 <- plot_ly(datafig2[datafig2$Country=='Australia',])
+fig1 <- fig1 %>% add_trace(x = ~Date, y = ~haz, type = 'bar', name = 'Australia',
+                           marker = list(color ="#99d7fb"),
+                           hoverinfo = "text",
+                           text = ~paste(round(haz,7))) 
+fig1 <- fig1 %>% layout(title = 'Hazard Rate Accross Five Countries For the First Wave',
+                        xaxis = list(title = ""),
+                        yaxis = list(side = 'left', title = '', showgrid = FALSE, zeroline = FALSE),
+                        yaxis2 = list(side = 'right', overlaying = "y", title = '', showgrid = FALSE, zeroline = FALSE))
+datafig3=all_week_1[ all_week_1$Date<all$Date[150],]
+fig2 <- plot_ly(datafig3[datafig3$Country=='Germany',])
+fig2 <- fig2 %>% add_trace(x = ~Date, y = ~haz, type = 'bar', name = 'Germany',
+                           marker = list(color ="rgb(166,206,227)" ),
+                           hoverinfo = "text",
+                           text = ~paste(round(haz,7))) 
+datafig4=all_week_1[ all_week_1$Date<all$Date[180],]
+fig3 <- plot_ly(datafig4[datafig4$Country=='Finland',])
+fig3 <- fig3 %>% add_trace(x = ~Date, y = ~haz, type = 'bar', name = 'Finland',
+                           marker = list(color = "rgb(31,120,180)" ),
+                           hoverinfo = "text",
+                           text = ~paste(round(haz,7))) 
+fig4<- plot_ly(datafig2[datafig2$Country=='Israel',])
+fig4 <- fig4 %>% add_trace(x = ~Date, y = ~haz, type = 'bar', name = 'Israel',
+                           marker = list(color = "#164dab"),
+                           hoverinfo = "text",
+                           text = ~paste(round(haz,7)))
+fig5<- plot_ly(data_hist)
+fig5<- fig5  %>% add_trace(x = ~Country, y = ~Cumulative_Incidence_Score, type = 'bar', name = 'Cumulative Incidence Score for First Wave',
+                           marker = list(color = "#054e78"),
+                           hoverinfo = "text",
+                           text = ~paste(round(Cumulative_Incidence_Score,5))) 
+
+
+fig_f <- subplot(fig,fig1,fig2,fig3,fig4,fig5,nrows=2)
+
+
+fig_f
+
+#TO EMBEDDED INTO MEDIUM 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig_f, filename = "plot10")
+  
+```
+
+
+7.Mortality Rate
+```{r}
+data = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+
+
+##Create active cases
+data$cases_active=data$Total-data$Deaths-data$Recovered
+
+
+#create population variable
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+data$N=ifelse(data$Country=="Canada",N_canada,0)
+data$N=ifelse(data$Country=="Australia",N_Australia,data$N)
+data$N=ifelse(data$Country=="Germany",N_Germany,data$N)
+data$N=ifelse(data$Country=="Finland",N_Finland,data$N)
+data$N=ifelse(data$Country=="Israel",N_Israel,data$N)
+
+#point prevalence for ALL days and countries 
+data$PP=data$cases_active/data$N
+
+
+
+###Case-fatality ratio
+data$CF=data$Deaths/data$Total
+
+###Outcome-fatality ratio
+data$OF=data$Deaths/(data$Recovered+data$Deaths)
+
+#first wave info onl
+data= data[data$Day <= 180,]
+
+##Plotting mortality rates - OF
+p7 <- ggplot(data, aes(x=Day,y=OF*100))+ 
+  geom_line(aes(color=Country))+
+  theme_bw()+
+  scale_color_manual(values = c("Canada"="#99d7fb", "Australia"="#c8d6f7","Finland"="#054e78", "Germany"="#164dab","Israel"="#b9e4ed"))+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days",title= "Mortality Rate (OF) for 5 Countries")
+  
+
+fig7 <- ggplotly(p7)
+fig7
+
+
+##Plotting mortality rates - cF
+p8 <- ggplot(data, aes(x=Day,y=CF*100))+ 
+  geom_line(aes(color=Country))+
+  theme_bw()+
+  scale_color_manual(values = c("Canada"="#99d7fb", "Australia"="#c8d6f7","Finland"="#054e78", "Germany"="#164dab","Israel"="#b9e4ed"))+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days",title= "Mortality Rate (CF) for 5 Countries")
+  
+
+fig8 <- ggplotly(p8)
+fig8
+
+#TO EMBEDDED INTO MEDIUM 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig7, filename = "plot11")
+# 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig8, filename = "plot12")
+#   
+  
+```
+
+
+
+8.Reproductive Rate
+
+#SIR IN PLOTLY
+```{r}
+merged_sir = read.csv("C:/Users/becky/OneDrive/Desktop/merged_sir.csv")
+pal <- c("#99d7fb", "#b9e4ed", "#054e78","#164dab","#c8d6f7")
+x <- merged_sir$time
+
+fig <- plot_ly(merged_sir, x = ~x,line = list( width = 2),mode = 'line+markers',colors=pal)
+
+fig <- fig %>% add_lines(y = ~S, name = "Susceptible",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Susceptible Cases on day" , time, "is: ",round(as.numeric(S),0)))
+
+fig <- fig %>% add_lines(y = ~I, name = "Infected",line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Infected Cases on day" , time, "is: ",round(as.numeric(I),0)))
+
+fig <- fig %>% add_lines(y = ~R, name = "removed",line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Removed Cases on day" , time, "is: ",round(as.numeric(R),0)))
+
+fig <- fig %>% add_lines(y = ~S_i, name = "Susceptible",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Susceptible Cases on day" , time, "is: ",round(as.numeric(S_i),0)), visible=F)
+
+fig <- fig %>% add_lines(y = ~I_i, name = "Infected",line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Infected Cases on day" , time, "is: ",round(as.numeric(I_i),0)),visible=F)
+
+fig <- fig %>% add_lines(y = ~R_i, name = "removed",line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Removed Cases on day" , time, "is: ",round(as.numeric(R_i),0)),visible=F)
+
+fig <- fig %>% add_lines(y = ~S_au, name = "Susceptible",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Susceptible Cases on day" , time, "is: ",round(as.numeric(S_au),0)), visible=F)
+
+fig <- fig %>% add_lines(y = ~I_au, name = "Infected",line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Infected Cases on day" , time, "is: ",round(as.numeric(I_au),0)),visible=F)
+
+fig <- fig %>% add_lines(y = ~R_au, name = "removed",line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Removed Cases on day" , time, "is: ",round(as.numeric(R_au),0)),visible=F)
+fig <- fig %>% add_lines(y = ~S_g, name = "Susceptible",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Susceptible Cases on day" , time, "is: ",round(as.numeric(S_g),0)), visible=F)
+
+fig <- fig %>% add_lines(y = ~I_g, name = "Infected",line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Infected Cases on day" , time, "is: ",round(as.numeric(I_g),0)),visible=F)
+
+fig <- fig %>% add_lines(y = ~R_g, name = "removed",line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Removed Cases on day" , time, "is: ",round(as.numeric(R_g),0)),visible=F)
+fig <- fig %>% add_lines(y = ~S_f, name = "Susceptible",line = list(color ="#99d7fb"),hoverinfo = "text",
+                         text = ~paste("Susceptible Cases on day" , time, "is: ",round(as.numeric(S_f),0)), visible=F)
+
+fig <- fig %>% add_lines(y = ~I_f, name = "Infected",line = list(color ="#164dab"),hoverinfo = "text",
+                         text = ~paste("Infected Cases on day" , time, "is: ",round(as.numeric(I_f),0)),visible=F)
+
+fig <- fig %>% add_lines(y = ~R_f, name = "removed",line = list(color ="#054e78"),hoverinfo = "text",
+                         text = ~paste("Removed Cases on day" , time, "is: ",round(as.numeric(R_f),0)),visible=F)
+
+
+
+
+#layout and dropdown list 
+fig14 <- fig %>% layout(
+  title=list(text =  "SIR Model for Five Countries With First Wave", y = 0.98),
+  xaxis = list(title='Day'),
+  yaxis = list(title = "Number of Cases"),
+  font=list(size = 10),
+  
+  updatemenus = list(
+    
+    list(
+      y = 0.8, size=10,
+      buttons = list(
+        list(method = "restyle",
+             args = list('visible', c(TRUE,TRUE, TRUE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Canada"),
+        
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,FALSE, TRUE, TRUE, TRUE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Israel"),
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,FALSE, FALSE,FALSE,FALSE, TRUE, TRUE, TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE)),
+             label = "Australia"),
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,FALSE, FALSE,FALSE,FALSE, FALSE,FALSE,FALSE,TRUE, TRUE, TRUE,FALSE,FALSE,FALSE)),
+             label = "Germany"),
+        
+        list(method = "restyle",
+             args = list("visible", list(FALSE,FALSE,FALSE, FALSE,FALSE,FALSE, FALSE,FALSE,FALSE,FALSE,FALSE,FALSE, TRUE, TRUE, TRUE)),
+             label = "Finland")
+  ))))
+fig14
+
+#TO EMBEDDED INTO MEDIUM 
+Sys.setenv("plotly_username"="beiqizhou")
+Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+api_create(fig14, filename = "plot14")
+```
+
+
+
+```{r}
+data = read.csv("C:/Users/becky/OneDrive/Desktop/data_filter3.csv")
+data$Date <- as.Date(data$Date, format =  "%m/%d/%Y")
+
+##Create active cases
+data$cases_active=data$Total-data$Deaths-data$Recovered
+
+
+#create population variable
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+
+data$N=ifelse(data$Country=="Canada",N_canada,0)
+data$N=ifelse(data$Country=="Australia",N_Australia,data$N)
+data$N=ifelse(data$Country=="Germany",N_Germany,data$N)
+data$N=ifelse(data$Country=="Finland",N_Finland,data$N)
+data$N=ifelse(data$Country=="Israel",N_Israel,data$N)
+
+#point prevalence for ALL days and countries 
+data$PP=data$cases_active/data$N
+
+
+#create susceptible, infected, removed
+data$susceptible=data$N-data$Total
+data$infected=data$cases_active
+data$removed=data$Recovered+data$Deaths
+
+```
+
+
+```{r}
+R_function = function(length, t0, t1, N_pop, country_sel){
+  L=length
+  Infected = data$infected[which(data$Date >= t0 & data$Date <= t1 & data$Country == country_sel)]
+  Day = data$Day[which(data$Date >= t0 & data$Date <= t1 & data$Country == country_sel)]
+  N=N_pop # population
+
+  ##STEP 1: Create function of differential equations, to find rate of infection 
+  SIR = function(time, state, parameters) {
+    par = as.list(c(state, parameters))
+    with(par, {
+      dS = -beta/N * I * S
+      dI = beta/N * I * S - gamma * I
+      dR = gamma * I
+      list(c(dS, dI, dR))
+    })
+  }
+  
+  ##STPE 2
+  library(deSolve)
+  
+  ##STEP 3: SETUP INITIAL CONDITIONS AND FIT DATA  to minimize RSS
+  init = c(S = N-Infected[1], I = Infected[1], R = 0) #Initial conditions  
+  RSS = function(parameters) {
+    names(parameters) = c("beta", "gamma")
+    out = ode(y = init, times = Day, func = SIR, parms = parameters)
+    fit = out[ , 3]
+    sum((Infected - fit)^2)   
+  }
+  
+  
+  #STEP 4: Find Beta and Gamma that fit data#
+  Opt = optim(c(0.5, 0.5), RSS, method = "L-BFGS-B", lower = c(0, 0), upper = c(1, 1), control=list(parscale=c(10^-4, 10^-4)))
+  Opt$message
+  Opt_par = setNames(Opt$par, c("beta", "gamma"))
+  #print(Opt_par)
+  
+  #find R0
+  R0 = setNames(Opt_par["beta"] / Opt_par["gamma"], "R0")
+  print(R0)
+  
+}
+
+
+```
+
+
+```{r}
+#FEB
+r_ca_feb = R_function(10,"2020-02-22","2020-02-28",N_canada, "Canada")
+r_au_feb = R_function(10,"2020-02-22","2020-02-28",N_Australia,"Australia")
+r_ge_feb = R_function(10,"2020-02-22","2020-02-28",N_Germany, "Germany")
+r_fi_feb = R_function(10,"2020-02-22","2020-02-28",N_Finland, "Finland")
+r_is_feb = R_function(10,"2020-02-22","2020-02-28",N_Israel, "Israel")
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+R_Rate <- c(r_ca_feb, r_au_feb, r_ge_feb, r_fi_feb, r_is_feb)
+R <- data.frame(Countries, R_Rate)
+
+p9<-ggplot(data=R, aes(x=Countries, y=R_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="R-nought", x = "Countries",title= "R-nought Before Interventions")
+
+fig9 <- ggplotly(p9)
+fig9
+
+
+
+#End april
+r_ca_may = R_function(10,"2020-05-01","2020-05-07",N_canada, "Canada")
+r_au_may = R_function(10,"2020-05-01","2020-05-07",N_Australia,"Australia")
+r_ge_may = R_function(10,"2020-05-01","2020-05-07",N_Germany, "Germany")
+r_fi_may = R_function(10,"2020-05-01","2020-05-07",N_Finland, "Finland")
+r_is_may = R_function(10,"2020-05-01","2020-05-07",N_Israel, "Israel")
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+R_Rate <- c(r_ca_may, r_au_may, r_ge_may, r_fi_may, r_is_may)
+R <- data.frame(Countries, R_Rate)
+
+p10<-ggplot(data=R, aes(x=Countries, y=R_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="R-nought", x = "Countries",title= "R-nought After Interventions")
+
+fig10 <- ggplotly(p10)
+fig10
+
+
+
+
+#FIRST WAVE
+r_ca = R_function(178,"2020-02-01","2020-07-18",N_canada, "Canada")
+r_au = R_function(130,"2020-02-01","2020-05-31",N_Australia,"Australia")
+r_ge = R_function(150,"2020-02-01","2020-06-20",N_Germany, "Germany")
+r_fi = R_function(180,"2020-02-01","2020-07-20",N_Finland, "Finland")
+r_is = R_function(130,"2020-02-01","2020-05-31",N_Israel, "Israel")
+
+Countries <- c("Canada", "Australia", "Germany", "Finland", "Israel")
+R_Rate <- c(r_ca, r_au, r_ge, r_fi, r_is)
+R <- data.frame(Countries, R_Rate)
+
+p11<-ggplot(data=R, aes(x=Countries, y=R_Rate, fill=Countries)) +
+  geom_bar(stat="identity")+
+  scale_fill_brewer()+
+  labs(y="R-nought", x = "Countries",title= "R-nought During the First Wave")
+
+fig11 <- ggplotly(p11)
+fig11
+
+#TO EMBEDDED INTO MEDIUM 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig9, filename = "plot13")
+# 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig10, filename = "plot15")
+# 
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(fig11, filename = "plot16")
+
+```
+
+
+
+
+9. Which Country Was More Successful in Flattening the Curve?
+```{r}
+library(timetk)
+library(anytime)
+all_UPDATED <- read.csv("C:/Users/fandi/Desktop/covid_analytics/data_filter3.csv")
+all_UPDATED$Date=as.Date(anydate(all_UPDATED$Date))
+
+attach(all_UPDATED)
+plot_sir<-function(Date,location,N,length){
+all = all_UPDATED
+all<- all[all$Date>=as.Date(Date),]
+all$X<-as.numeric(difftime( as.Date(all$Date),as.Date(Date), unit="days"))
+Canada =  subset(all, Country == location)
+N_Canada=N
+Canada$cases_active=Canada$Total-Canada$Deaths-Canada$Recovered
+Canada$susceptible=N_Canada-Canada$Total
+Canada$infected=Canada$cases_active
+Canada$removed=Canada$Recovered+Canada$Deaths
+
+plot=ggplot(Canada, aes(x=X, y=value, colour=variable))
+S=geom_line(aes(y=susceptible),color="orange")
+I=geom_line(aes(y=infected),colour="green")
+R=geom_line(aes(y=removed),color="blue")
+plot+I+R+theme_bw()
+plot+S+theme_bw()
+
+L=10
+Infected=Canada$infected[1:L]
+Day=Canada$X[1:L]
+N=37742154   #Canada’s population
+
+SIR = function(time, state, parameters) {
+  par = as.list(c(state, parameters))
+  with(par, {
+    dS = -beta/N * I * S
+    dI = beta/N * I * S - gamma * I
+    dR = gamma * I
+    list(c(dS, dI, dR))
+  })
+}
+
+##STEP 2: INSTALL DIFFERENTIAL EQUATIONS SOLVER####
+library(deSolve)
+
+##STEP 3: SETUP INITIAL CONDITIONS AND FIT DATA####
+init = c(S = N-Infected[1], I = Infected[1], R = 0) #Initial conditions  
+RSS = function(parameters) {
+  names(parameters) = c("beta", "gamma")
+  out = ode(y = init, times = Day, func = SIR, parms = parameters)
+  fit = out[ , 3]
+  sum((Infected - fit)^2)   
+}
+
+
+#STEP 4: Find Beta and Gamma that fit data#
+Opt = optim(c(0.5, 0.5), RSS, method = "L-BFGS-B", lower = c(0, 0), upper = c(1, 1), control=list(parscale=c(10^-4, 10^-4)))
+Opt$message
+Opt_par = setNames(Opt$par, c("beta", "gamma"))
+print(Opt_par)
+
+R0 = setNames(Opt_par["beta"] / Opt_par["gamma"], "R0")
+R0
+
+par(mfrow=c(1,2))
+t = 1:length # time in days
+fit = data.frame(ode(y = init, times = t, func = SIR, parms = Opt_par))
+fit$actual=Canada$infected[1:length]
+fit$Country=location
+#calculate PRR
+a=max(Canada$infected[1:length]) ##real peak
+b=max(fit$I[1:length])    ## worst-case peak
+PRR=(b-a)/b
+print(PRR)
+
+#PDD
+c=which.max(Canada$infected[1:length]) #Peak day in real scenario
+d=which.max(fit$I[1:length])    #Peak day in worst-case scenario
+PDD=c-d
+print(PDD) #The theoretical peak was 9 later than in the worst-  case scenario (Day 58 vs  38)
+
+#CDD
+c=max(Canada$Total[1:length])#Peak day in real scenario
+d=max(fit$I)+max(fit$R)  #Peak day in worst-case scenario
+c
+d
+CRR=c/d
+print(CRR)
+fit$`Log Infected Cases`=log(fit$I)
+fit$`Log Actual Infected Cases`=log(fit$actual)
+names(fit)= c("time", "S"    ,        "Infected Cases"  ,          'Recovered Cases', "Actual Infected Cases" , "Country","Log Infected Cases","Log Actual Infected Cases")
+return(fit)
+}
+
+```
+
+
+
+```{r}
+N_canada=37742154
+N_Australia=25499884
+N_Germany=83783942
+N_Finland=5540720
+N_Israel=8655535
+can=plot_sir("2020-01-26","Canada",N_canada,174)
+
+aus=plot_sir("2020-01-26","Australia",N_Australia,126)
+germ=plot_sir("2020-01-27","Germany",N_Germany,145)
+fin=plot_sir("2020-02-26","Finland",N_Finland,173)
+israel=plot_sir("2020-02-21","Israel",N_Israel,145)
+
+```
+
+```{r}
+library(gridExtra)
+p=ggplot(can, aes(x=time)) + 
+  geom_line(aes(y = `Infected Cases`), color = "#99d7fb") + 
+  geom_line(aes(y = `Recovered Cases`),  color="#c8d6f7") +
+  geom_line(aes(y = `Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days")
+
+
+p2=ggplot(aus, aes(x=time)) + 
+   geom_line(aes(y = `Infected Cases`), color = "#99d7fb") + 
+  geom_line(aes(y = `Recovered Cases`),  color="#c8d6f7") +
+  geom_line(aes(y = `Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days")
+
+p3=ggplot(germ, aes(x=time)) + 
+     geom_line(aes(y = `Infected Cases`), color = "#99d7fb") + 
+  geom_line(aes(y = `Recovered Cases`),  color="#c8d6f7") +
+  geom_line(aes(y = `Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days")
+
+p4=ggplot(fin, aes(x=time)) + 
+      geom_line(aes(y = `Infected Cases`), color = "#99d7fb") + 
+  geom_line(aes(y = `Recovered Cases`),  color="#c8d6f7") +
+  geom_line(aes(y = `Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days")
+
+p5=ggplot(israel, aes(x=time)) + 
+      geom_line(aes(y = `Infected Cases`), color = "#99d7fb") + 
+  geom_line(aes(y = `Recovered Cases`),  color="#c8d6f7") +
+  geom_line(aes(y = `Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Mortality Rate (%)", x = "Days")
+
+
+figq10=ggplotly(subplot(p,p2,p3,p4,p5,nrows=2))
+figq10
+Sys.setenv("plotly_username"="beiqizhou")
+Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+api_create(figq10, filename = "plotq10")
+```
+
+```{r}
+library(gridExtra) 
+p=ggplot(can, aes(x=time)) + 
+  geom_line(aes(y = `Log Infected Cases`), color = "#99d7fb")  +
+  geom_line(aes(y = `Log Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Log cases", x = "Days",title="Peak Comparison")
+
+
+p2=ggplot(aus, aes(x=time)) + 
+  geom_line(aes(y = `Log Infected Cases`), color = "#99d7fb")  +
+  geom_line(aes(y = `Log Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Log cases", x = "Days")
+
+p3=ggplot(germ, aes(x=time)) + 
+  geom_line(aes(y = `Log Infected Cases`), color = "#99d7fb")  +
+  geom_line(aes(y = `Log Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Log cases", x = "Days")
+
+p4=ggplot(fin, aes(x=time)) + 
+    geom_line(aes(y = `Log Infected Cases`), color = "#99d7fb")  +
+  geom_line(aes(y = `Log Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Log cases", x = "Days")
+
+p5=ggplot(israel, aes(x=time)) + 
+  geom_line(aes(y = `Log Infected Cases`), color = "#99d7fb")  +
+  geom_line(aes(y = `Log Actual Infected Cases`),  color="#054e78",linetype="twodash") +scale_y_log10()+theme_bw()+
+  facet_wrap(~Country, scale="free") +
+  labs(y="Log cases", x = "Days")
+
+
+# mylegend<-g_legend(p2)
+# 
+# p7<- grid.arrange(arrangeGrob(p2 + theme(legend.position="none"),
+#                          p2 + theme(legend.position="none"),
+#                          nrow=1),
+#              mylegend, nrow=2,heights=c(10, 1))
+figq11=ggplotly(subplot(p,p2,p3,p4,p5,nrows=2))
+figq11
+# Sys.setenv("plotly_username"="beiqizhou")
+# Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+# api_create(figq11, filename = "plotq11")
+```
+
+
