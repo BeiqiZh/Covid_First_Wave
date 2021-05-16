@@ -12,3 +12,5 @@ Now we will be looking at multiple ratios to further determine how countries are
 5. Reproductive Rate
 6. PRR, PDD, CRR
 
+# Weather and COVID's spread
+Apart from controllable factors used in each country in order to reduce the spread of COVID, we will also be investigating any external factors that might be correlated with the infection rate. We will investigate the effects of several meteorological factors on daily new cases and daily new deaths of COVID-19. We choose to focus on 4 main factors which are: temperature, wind, and relative humidity. A number of epidemiological studies demonstrated that various contagious respiratory illnesses transmission is strongly modulated by temperature and humidity.
