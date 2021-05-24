@@ -1,0 +1,325 @@
+---
+title: "Lab 1 - Weather Features analysis"
+author: "Hanna Swail"
+date: "08/05/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Import Data
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+
+all_UPDATED <- read.csv("C:/Users/fandi/Desktop/covid_analytics/all_UPDATED.csv")
+
+
+all= all_UPDATED
+all$N=0
+attach(all)
+library(imputeTS)
+all = na_mean(all)
+
+all=all[, which(colMeans(!is.na(all)) > 0.5)]
+
+all$cases_active=all$Total-all$Deaths-all$Recovered
+
+#point prev
+N_Canada = 38 
+N_Aus=26
+N_Fin=5
+N_Bel=12
+N_UK = 68
+
+#put the population there
+
+all$N=ifelse(all$Country=="Canada",N_Canada,0)
+all$N=ifelse(all$Country=="Finland",N_Fin,all$N)
+all$N=ifelse(all$Country=="Belgium",N_Bel,all$N)
+all$N=ifelse(all$Country=="United Kingdom",N_UK,all$N)
+all$N=ifelse(all$Country=="Australia",N_Aus,all$N)
+
+all$PP=all$cases_active/all$N
+
+#hazard rate
+all$Population=N*1000000
+Haz_numerator=(all$Total-lag(all$Total))/all$Population #new cases rate
+Haz_denominator=1-all$Total/all$Population #normal people rate
+all$Haz=Haz_numerator/Haz_denominator #function
+CAD_haz=all[!(all$day==1),] # no day 1
+
+#Case-fatality ratio
+all$CF=all$Deaths/all$Total
+
+#Outcome-fatality ratio
+all$OF=all$Deaths/(all$Recovered+all$Deaths)
+
+#Getting canada data only
+mtl_merge =  subset(all, Country == "Canada")
+mtl_merge = subset(mtl_merge, select = -c(Name,Country,X) )
+
+
+```
+
+##This is for Canada ony...just subset based on other 4 locations to get other results 
+## Correlation Matrix 
+
+```{r}
+all_1 = subset(all, select = c(Temperature, Total, Deaths, Wind.Speed, Relative.Humidity)) 
+res = cor(all_1)
+library(corrplot)
+corrplot(res, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45,tl.cex = 0.7)
+
+```
+
+## Correlation Matrix with only significantly high or low values 
+```{r}
+#devtools::install_github("laresbernardo/lares")
+library(lares)
+#png("C:/Users/fandi/Desktop/covid_analytics/Canada_corr.png",width = 200, height = 120, units='mm',res = 300)
+mtl =  subset(all, Country == "Canada")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+
+
+#dev.off()
+```
+```{r}
+mtl =  subset(all, Country == "Finland")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+#png("C:/Users/fandi/Desktop/covid_analytics/Finland_corr.png",width = 200, height = 120, units='mm',res = 300)
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+#dev.off()
+```
+```{r}
+mtl =  subset(all, Country == "Germany")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+# png("C:/Users/fandi/Desktop/covid_analytics/Germany_corr.png",width = 200, height = 120, units='mm',res = 300)
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+#dev.off()
+```
+```{r}
+mtl =  subset(all, Country == "Australia")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+# png("C:/Users/fandi/Desktop/covid_analytics/Australia_corr.png",width = 200, height = 120, units='mm',res = 300)
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+# dev.off()
+```
+```{r}
+mtl =  subset(all, Country == "Israel")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+# png("C:/Users/fandi/Desktop/covid_analytics/Israel_corr.png",width = 200, height = 120, units='mm',res = 300)
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+# dev.off()
+```
+```{r}
+# png("C:/Users/fandi/Desktop/covid_analytics/Israel_corr_top10.png",width = 200, height = 180, units='mm',res = 300)
+mtl =  subset(all, Country == "Israel")
+mtl = subset(mtl, select = c(Relative.Humidity,Wind.Speed, Temperature, Deaths, Total) )
+corr_cross(mtl, # name of dataset
+  max_pvalue = 0.05, # display only significant correlations (at 5% level)
+  top = 10 # display top 10 couples of variables (by correlation coefficient)
+)
+# dev.off()
+```
+
+```{r}
+#corr_var(all_1, # name of dataset
+ # cases_active, # name of variable to focus on
+#  top = 10 # display top 5 correlations
+#) 
+
+corr_var(all_1, # name of dataset
+  Deaths, # name of variable to focus on
+  top = 10 # display top 5 correlations
+) 
+
+corr_var(all_1, # name of dataset
+  Total, # name of variable to focus on
+  top = 10 # display top 5 correlations
+) 
+
+
+```
+
+
+
+
+
+
+##Heatmap
+
+```{r}
+ggplot(all_1, aes(x=Temperature, y=Total) ) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_fill_distiller(palette= "Spectral", direction=1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(
+    legend.position='none'
+  )
+
+```
+
+```{r}
+ggplot(mtl_merge, aes(x=Wind.Speed, y=Total) ) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_fill_distiller(palette= "Spectral", direction=1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(
+    legend.position='none'
+  )
+```
+
+
+# all country data
+
+## Add Additional Features
+
+```{r}
+attach(all)
+all$cases_active=all$Total-all$Deaths-all$Recovered
+library(scales) # to access breaks/formatting functions
+
+# Change Date to date format
+all$Date <- as.Date(all$Date)
+```
+
+## Other preprocessing
+```{r}
+#remove columns with over 50% missing 
+all=all[, which(colMeans(!is.na(all)) > 0.5)]
+colnames(all)[colSums(is.na(all)) > 0]
+```
+
+```{r}
+library(timetk)
+all_week = all %>% group_by(Country)%>% summarise_by_time(.date_var = Date,.by= "week", Temperature=mean(Temperature))
+
+all_week %>%
+  ggplot( aes(x=Date, y=Temperature, group=Country, color=Country)) +
+    geom_line() +
+    ggtitle("Temperature of each Country") +
+    ylab("Temperature") + theme(axis.text.x = element_text(angle = 90))+ scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
+
+```
+
+
+```{r}
+all_week = all %>% group_by(Country)%>% summarise_by_time(.date_var = Date,.by= "month", Wind.Speed=mean(Wind.Speed))
+all_week %>% 
+  ggplot( aes(x=Date, y=Wind.Speed, group=Country, color=Country)) +
+    geom_line() +
+    ggtitle("Wind Speed of each Country") +    ylab("Wind Speed") + theme(axis.text.x = element_text(angle = 90))+ scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
+
+```
+
+
+```{r}
+all_week = all %>% group_by(Country)%>% summarise_by_time(.date_var = Date,.by= "month", Relative.Humidity=mean(Relative.Humidity))
+all_week %>% 
+  ggplot( aes(x=Date, y=Relative.Humidity, group=Country, color=Country)) +
+    geom_line() +ggtitle("Humidity of each Country") +    ylab("Wind Speed") + theme(axis.text.x = element_text(angle = 90))+ scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
+```
+
+## Overall metrics 
+```{r}
+overall1 <- all %>% group_by(Country)
+overall = overall1 %>% summarise(
+  Temperature = mean(Temperature),
+  Humidity = mean (Relative.Humidity),
+  Wind.Speed = mean(Wind.Speed),
+  Total.Cases = sum(Total),
+  Total.Deaths = sum(Deaths)
+)
+overall
+```
+
+
+```{r}
+overall %>%
+  #arrange(desc(Total.Cases)) %>%
+  #mutate(Country = factor(Country, Country)) %>%
+  ggplot(aes(x=Temperature, y=Wind.Speed, size=Total.Cases, color=Country)) +
+    geom_point(alpha=0.5) +
+    scale_size(range = c(.001, 50), name="Cases")
+```
+
+
+```{r}
+overall %>%
+  #arrange(desc(Total.Cases)) %>%
+  #mutate(Country = factor(Country, Country)) %>%
+  ggplot(aes(x=Temperature, y=Humidity, size=Total.Deaths, color=Country)) +
+    geom_point(alpha=0.5) +
+    scale_size(range = c(.001, 50), name="Cases")
+```
+
+## this isnt working
+
+```{r}
+ggplot(overall) + 
+  geom_col(aes(x = Country, y = Total.Deaths), size = 1, color = "darkblue", fill = "white") +
+  geom_line(aes(x = Country, y = Temperature), size = 1.5, color="red", group = 0) + 
+  scale_y_continuous(sec.axis = sec_axis(~./120000, name = "Temperature"))
+```
+
+```{r}
+library(plotly)
+library(dplyr)
+all<- read.csv("C:/Users/fandi/Desktop/covid_analytics/all_UPDATED.csv")
+Sys.setenv("plotly_username"="beiqizhou")
+Sys.setenv("plotly_api_key"="YJeWb4eTmUSJUEqyeIwg")
+
+
+weather_first_wave=aggregate(all[,c('Relative.Humidity','Wind.Speed','Temperature')], list(all$Country), mean)
+
+
+d <- read.table(text=
+'Country     weather  Weather_value  
+Australia       Humidity    69.3    
+Australia         Wind_Speed      25.3
+Australia            Temperature      16.4
+Canada       Humidity    57.4    
+Canada        Wind_Speed      17.8
+Canada            Temperature      13.1
+Finland       Humidity    68.6    
+Finland         Wind_Speed      24.2
+Finland            Temperature      10.3
+Germany       Humidity    64.3    
+Germany         Wind_Speed      18.2
+Germany            Temperature      12.9
+Israel       Humidity    55.95   
+Israel         Wind_Speed      21.7
+Israel            Temperature      20.1', header=TRUE)
+
+fig <-d
+
+fig <- fig %>% plot_ly(x = ~Country, y = ~Weather_value, color = ~weather,colors=c("#054e78","#b9e4ed","#99d7fb"))
+
+fig
+# api_create(fig, filename = "plotweather")
+```
+
+
+
